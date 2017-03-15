@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,24 +44,31 @@ public class Quiz extends AppCompatActivity {
         options[3] = (RadioButton)findViewById(R.id.opt4);
 
 
+        question.setText("Start!");
+        question.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getData();
+            }
+        });
 
 
-        getData();
     }
 
     private void getData() {
         try {
-            Log.e("asdf",getIntent().getStringExtra(DATA_NAME));
-            String s = new PersonSearch().execute(getIntent().getStringExtra(DATA_NAME)+API,null,"").get();
-            Log.e("asdf",s);
+            String s = new PersonSearch().execute("http://"+getIntent().getStringExtra(DATA_NAME)+API,null,"").get();
+            try {
+                 data = new JSONObject(s);
+                Toast.makeText(Quiz.this, data.getJSONArray("items").getJSONObject(0).getString("title"), Toast.LENGTH_SHORT).show();
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e("asdf",""+s);
+            }
 
-            data = new JSONObject(new PersonSearch().execute(getIntent().getStringExtra(DATA_NAME)+API,null,"").get());
-            Toast.makeText(Quiz.this, data.getJSONArray("items").getJSONObject(0).getString("title"), Toast.LENGTH_SHORT).show();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
