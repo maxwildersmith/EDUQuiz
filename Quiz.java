@@ -51,9 +51,10 @@ public class Quiz extends AppCompatActivity {
     private void getData() {
         try {
             Log.e("asdf",getIntent().getStringExtra(DATA_NAME));
-            Log.e("asdf",PersonSearch.execute(getIntent().getStringExtra(DATA_NAME)+API,null,"").get());
+            String s = new PersonSearch().execute(getIntent().getStringExtra(DATA_NAME)+API,null,"").get();
+            Log.e("asdf",s);
 
-            data = new JSONObject(search.execute(getIntent().getStringExtra(DATA_NAME)+API,null,"").get());
+            data = new JSONObject(new PersonSearch().execute(getIntent().getStringExtra(DATA_NAME)+API,null,"").get());
             Toast.makeText(Quiz.this, data.getJSONArray("items").getJSONObject(0).getString("title"), Toast.LENGTH_SHORT).show();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -67,6 +68,7 @@ public class Quiz extends AppCompatActivity {
     public class PersonSearch extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
+            Log.e("asdf","async: "+urls[0]);
             try {
                 URL url = new URL(urls[0]);
                 URLConnection connection = url.openConnection();
@@ -84,6 +86,7 @@ public class Quiz extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            Log.e("asdf","stuff");
             return null;
         }
 
