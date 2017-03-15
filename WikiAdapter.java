@@ -1,6 +1,7 @@
 package com.example.quiz.eduquiz;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,9 @@ import java.util.List;
  */
 public class WikiAdapter extends ArrayAdapter<Wiki> {
 
+    private TextView name;
+    private Wiki person;
+
     public WikiAdapter(Context context, List<Wiki> objects) {
         super(context, 0, objects);
     }
@@ -25,12 +29,22 @@ public class WikiAdapter extends ArrayAdapter<Wiki> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_wiki, null);
         }
         //get the item at the position where we are
-        Wiki person = getItem(position);
+         person = getItem(position);
 
-        TextView name = (TextView) convertView.findViewById(R.id.name);
+        name = (TextView) convertView.findViewById(R.id.name);
 
         //put the text of the hero into the appropriate views
         name.setText(person.getName());
+
+        convertView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getContext(), Quiz.class);
+                intent.putExtra(Quiz.DATA_NAME,person.getUrl());
+                intent.putExtra("name", name.getText());
+                getContext().startActivity(intent);
+            }
+        });
 
         //return the view that you had edited
         return convertView;

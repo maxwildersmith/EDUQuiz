@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private class PersonSearch extends AsyncTask<String, Void, String> {
+    public class PersonSearch extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
             try {
