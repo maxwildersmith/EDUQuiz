@@ -1,5 +1,6 @@
 package com.example.quiz.eduquiz;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,10 +33,9 @@ public class Quiz extends AppCompatActivity {
     public static final String DATA_NAME = "data stuffs";
     private static final String GET_ARTICLES = "/api/v1/Articles/List?";
     private static final String GET_INFO = "/api/v1/Articles/AsSimpleJson?id=";
-    private int correctopt;
+    private int correctOpt,score,qsLeft;
     private boolean started = false;
 
-    private String[] questions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +46,8 @@ public class Quiz extends AppCompatActivity {
         question = (TextView)findViewById(R.id.question);
         submit = (Button)findViewById(R.id.next);
 
-        questions = new String[5];
+        score=0;
+        qsLeft=10;
 
         options = new RadioButton[4];
         options[0] = (RadioButton)findViewById(R.id.opt1);
@@ -59,16 +61,23 @@ public class Quiz extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getData();
+                checkAnswer();
             }
         });
 
 
     }
 
+
+
     private void getData() {
-        if(started)
-            checkAnswer();
+
+        title.setText("Score: "+score+", "+qsLeft+" questions left.");
+        if(qsLeft<=0)
+            finish();
+
+        if(time!=null)
+            time.cancel();
         try {
             String s = new PersonSearch().execute("http://"+getIntent().getStringExtra(DATA_NAME)+GET_ARTICLES,null,"").get();
             try {
@@ -78,7 +87,7 @@ public class Quiz extends AppCompatActivity {
                 for(int i=0;i<articles.length;i++)
                     articles[i] = articleList.getJSONObject(i);
                 int art = (int)(Math.random()*articles.length);
-                int correctOpt = (int)(Math.random()*4);
+                 correctOpt = (int)(Math.random()*4);
                 int x=-1;
                 for(int i=0;i<options.length;i++)
                     if((x=(int)(Math.random()*articles.length))!=art)
@@ -92,17 +101,47 @@ public class Quiz extends AppCompatActivity {
                 options[correctOpt].setText(articles[art].getString("title"));
                 JSONArray body = new JSONObject(new PersonSearch().execute("http://"+getIntent().getStringExtra(DATA_NAME)+GET_INFO+articles[art].getString("id"),null,"").get()).getJSONArray("sections");
                 JSONArray content = null;
+                Log.e("asdf",""+body.getJSONObject(0));
+                Log.e("asdf","2"+body.getJSONObject(0).getJSONArray("content"));
                 question.setText("");
-                for(int i=0;i<body.length();i++)
-                    if((content = body.getJSONObject(i).getJSONArray("content")).length()!=0){
-                        String restofarticle = content.getJSONObject(0).getString("text").substring(content.getJSONObject(0).getString("text").indexOf("."));
-                        question.setText(restofarticle.substring(0,restofarticle.indexOf(".")+1));
+                String restofarticle;
+                for(int i=0;i<body.length();i++) {
+                    Log.e("asdf", "2" + i + " " + body.getJSONObject(i).getJSONArray("content"));
+                    if ((content = body.getJSONObject(i).getJSONArray("content")).length() != 0) {
+                        if ((content.getJSONObject(0).has("text"))) {
+                            try {
+                                restofarticle = content.getJSONObject(0).getString("text").substring(content.getJSONObject(0).getString("text").indexOf("."));
+                                restofarticle = restofarticle.substring(0,restofarticle.indexOf("."));
+                            } catch (java.lang.StringIndexOutOfBoundsException e) {
+                                restofarticle = content.getJSONObject(0).getString("text");
+                            }
+                                question.setText(restofarticle);
+
+                        }
                     }
-                if(question.getText().equals(""))
+                }
+
+
+
+                if(question.getText().equals("")) {
                     question.setText("No valid articles");
+                    getData();
+                }
 
-                //question.setText(new PersonSearch().execute("http://"+getIntent().getStringExtra(DATA_NAME)+GET_INFO+articles[art].getString("id"),null,"").get());
-
+//                time = new CountDownTimer(10000,1000) {
+//                    @Override
+//                    public void onTick(long l) {
+//                        timer.setText(l/1000.+" seconds left");
+//                    }
+//
+//                    @Override
+//                    public void onFinish() {
+//                        Toast.makeText(Quiz.this, "Out of Time", Toast.LENGTH_SHORT).show();
+//                        //checkAnswer();
+//
+//                    }
+//                };
+//                time.start();
             } catch (JSONException e) {
                 e.printStackTrace();
                 Log.e("asdf",""+s);
@@ -120,7 +159,18 @@ public class Quiz extends AppCompatActivity {
     }
 
     private void checkAnswer() {
+        qsLeft--;
+        if(started)
+            if(options[correctOpt].isChecked()){
+                score++;
+                Toast.makeText(Quiz.this, "Correct!", Toast.LENGTH_SHORT).show();
+                getSharedPreferences("stuff",0).edit().putInt("score",1+getSharedPreferences("stuff", Context.MODE_PRIVATE).getInt("score",0)).commit();
+            }
+        //else
+            //time.cancel();
 
+
+        getData();
     }
 
     public class PersonSearch extends AsyncTask<String, Void, String> {

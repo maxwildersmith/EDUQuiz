@@ -34,7 +34,7 @@ public class WikiAdapter extends ArrayAdapter<Wiki> {
         name = (TextView) convertView.findViewById(R.id.name);
 
         //put the text of the hero into the appropriate views
-        name.setText(person.getName());
+        name.setText(person.getUrl());
 
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override

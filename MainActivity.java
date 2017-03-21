@@ -1,5 +1,6 @@
 package com.example.quiz.eduquiz;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -19,8 +20,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
@@ -29,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     private EditText input;
-    private Button button;
+    private Button button,score;
     private TextView output;
     private String search;
     private ArrayList<Wiki> wikis;
@@ -40,6 +43,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        score = (Button)findViewById(R.id.score);
+        score.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,Score.class));
+            }
+        });
 
         wikis = new ArrayList<Wiki>();
         frag = new WikiFragment();
@@ -66,7 +77,11 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Enter Text.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                in = input.getText().toString();
+                try {
+                    in = URLEncoder.encode(input.getText().toString(), "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
                 String s="";
                 try {
                     String out=new PersonSearch().execute(BASE_URL+in, null,"").get();
@@ -118,6 +133,17 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+//    public static String urlify(String s){
+//        String[] chars = new String[s.length()];
+//        for(int i=0;i<chars.length;i++)
+//            if(chars[i].equals(" "))
+//                chars[i] = "%20";
+//        String out ="";
+//        for(String c:chars)
+//            out+=c;
+//        return out;
+//    }
 
     public class PersonSearch extends AsyncTask<String, Void, String> {
         @Override
